@@ -43,6 +43,7 @@ Each subdirectory contains its own `README.md` describing the internals.
 python -m venv .venv
 source .venv/bin/activate  # or .venv\Scripts\activate on Windows
 pip install -r requirements.txt
+python batch_update_test.py
 ```
 
 > **Note**: The Retrieval v2 prototype can optionally leverage `sentence-transformers`. During batch runs we disable that dependency via `DISABLE_SEMANTIC_MODEL=1` to avoid SciPy/Numpy compatibility issues.
