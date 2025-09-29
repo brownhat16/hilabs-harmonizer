@@ -2,3 +2,7 @@ rapidfuzz>=3.0.0
 pandas>=1.5.0
 numpy>=1.21.0
 pyarrow>=14.0.0
+pytest>=7.0.0
+pytest-cov>=4.0.0
+black>=22.0.0
+flake8>=5.0.0
