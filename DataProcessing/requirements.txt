@@ -1,0 +1,19 @@
+# Core dependencies for medical text processing
+rapidfuzz>=3.0.0
+pandas>=1.5.0
+numpy>=1.21.0
+pyarrow>=14.0.0
+
+# Optional dependencies for enhanced functionality
+# Uncomment if you need additional features:
+# scikit-learn>=1.1.0  # For advanced ML-based matching
+# nltk>=3.7  # For natural language processing
+# spacy>=3.4.0  # For advanced NLP features
+# transformers>=4.20.0  # For transformer-based semantic matching
+# sentence-transformers>=2.2.0  # For sentence embeddings
+
+# Development and testing dependencies
+# pytest>=7.0.0  # For testing
+# pytest-cov>=4.0.0  # For coverage testing
+# black>=22.0.0  # For code formatting
+# flake8>=5.0.0  # For linting
