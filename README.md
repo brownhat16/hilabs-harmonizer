@@ -105,6 +105,53 @@ This script reads the workbook, runs the ensemble for each row, and overwrites t
      - Applies weighted lexical/semantic similarity.
      - Enforces strict ingredient matching, heuristics for location-based SNOMED codes, dose bonuses/penalties, and optional sentence-transformer embeddings.
      - Includes curated heuristics for corner cases (e.g., “appendix removal surgery” → Appendectomy).
+     - Here’s a clean, unambiguous spec for your retrieval + prioritization logic, with tidy wording and a reference pseudocode.
+
+Retrieval & Normalization Rules
+
+Weights
+• Let 0.75 be the weight for lexical similarity.
+• Let 0.25 be the weight for semantic similarity.
+• Combined score for a candidate: S = A·lexical_sim + B·semantic_sim.
+(Normalize both similarities to [0,1] before combining.)
+
+Priority tables
+• Medication (RxNorm TTY priority)
+SCD=1 > SBD=2 > GPCK=3 > BPCK=4 > PIN=5 > IN=6 > BN=7 > SY=8 > TMSY=8 > PSN=9 > DF=10
+• Non-medication (SNOMED CT term-type priority)
+PT=1 > FN=2 > SY=3
+
+Lower number = higher priority.
+
+General flow
+1. Search space
+• If entity == "medication": search in RxNorm.
+• Else (non-medication): search in SNOMED CT.
+2. Score & shortlist
+• For all candidates from the chosen KB, compute S = A·lex + B·sem.
+• Keep the top K by S (choose K sensibly, e.g., 10–50).
+3. CUI normalization within top-K
+For each shortlisted candidate:
+• Identify its CUI (RxCUI for RxNorm, Concept ID for SNOMED CT).
+• Gather all terms for the same CUI that exist in the KB (not just those in top-K).
+• From that set, select the term with the best TTY priority according to the relevant table.
+• If the current candidate’s TTY is not the best for that CUI, promote it to the highest-priority term for that CUI (i.e., replace the candidate representation with that higher-priority TTY form without changing the CUI).
+• Record (a) the CUI, (b) the selected term string, (c) its TTY, and (d) the original combined score S used for ranking.
+4. Final selection & tie-breaks
+• Group by CUI (since multiple terms may map to the same CUI after promotion).
+• For each CUI group, keep the instance with the best TTY priority.
+• Rank remaining CUIs by:
+1. Combined score S (higher first),
+2. TTY priority (lower number first),
+3. Lexical similarity (higher first),
+4. Shortest term length (optional, as a final tie-break).
+• Return the top CUI with its best-priority term and identifiers:
+• For medications: RxCUI, term, TTY, any additional identifiers (e.g., RXNORM code strings).
+• For non-medications: SNOMED Concept ID, term, TTY (PT/FN/SY).
+5. Thresholds & fallbacks (recommended)
+• Optional confidence threshold on S. If no candidate exceeds it, return no match or ask for disambiguation.
+• If semantic vectors are missing, fall back to lexical-only (B=0).
+• Treat TMSY the same as SY (identical priority).
 
 3. **Ensemble (`ensemble.py`)**
    - Runs both engines, normalises scores, and applies routing logic:
